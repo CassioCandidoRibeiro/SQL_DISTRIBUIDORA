@@ -1,0 +1,41 @@
+-------------------------------------------------------
+----- ACOMPANHAMENTO DAS VENDAS
+-------------------------------------------------------
+SELECT 
+	v.DATAFATURA AS "Data e Horário",
+	v.NOMEVEND AS "Vendedor",
+	v."CODIGO" AS "Código",
+	v.NOME AS "Unidade",
+	n.NUMERO_NOTA AS "NFE",
+	v.VALOR_TOTAL_PRODUTOS AS "Valor Produtos",
+	v.VALOR_FRETE AS "Frete",
+	v.VALOR_OUTRAS_DESPESAS "Despesas",
+	v.VLRTOTAL AS "Total da Nota",
+	v.TRANSPORTADORA_NOME AS "Transportadora"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe."CODIGO" = v.CODCLI 
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.VENDA_FATURADA = 'S'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-12-06'
+	--AND v."CODIGO" = 41551
+	--AND n.NUMERO_NOTA = 7329
+	--AND v.NOMEVEND LIKE 'LUCAS%'
+GROUP BY 
+	v.DATAFATURA,
+	v.NOMEVEND,
+	v."CODIGO",
+	v.NOME,
+	n.NUMERO_NOTA,
+	v.VALOR_TOTAL_PRODUTOS,
+	v.VALOR_FRETE,
+	v.VALOR_OUTRAS_DESPESAS,
+	v.VLRTOTAL,
+	v.TRANSPORTADORA_NOME
+ORDER BY v.DATAFATURA DESC;

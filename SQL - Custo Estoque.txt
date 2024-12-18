@@ -1,0 +1,29 @@
+----------------------------------------------------------------------
+-- CUSTO ESTOQUE
+----------------------------------------------------------------------
+SELECT 
+	m.CODEMP AS "Código",
+	m.MERCADORIA AS "Produto",
+	m.CUSTO AS "Custo",
+	me.SALDO_ESTOQUE AS "Estoque",
+	(me.SALDO_ESTOQUE)*(m.CUSTO) AS "Custo Estoque"
+FROM	
+	MERCADORIAS m 
+	JOIN MERCADORIAS_ESTOQUE me ON me.CODIGO_MERCADORIA = m."CODIGO" 
+WHERE 1=1
+	AND m.ATIVO = 'S'
+	AND me.SALDO_ESTOQUE = 1
+ORDER BY 
+	"Custo Estoque" DESC;
+
+----------------------------------------------------------------------
+-- CUSTO ESTOQUE RESUMIDO
+----------------------------------------------------------------------
+SELECT 	
+	SUM((me.SALDO_ESTOQUE)*(m.CUSTO)) AS "Custo Estoque"
+FROM 	MERCADORIAS m 
+	JOIN MERCADORIAS_ESTOQUE me ON me.CODIGO_MERCADORIA = m."CODIGO" 
+WHERE 1=1 
+	AND m.ATIVO = 'S'
+	AND me.SALDO_ESTOQUE > 0;
+----------------------------------------------------------------------

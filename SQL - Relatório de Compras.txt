@@ -1,0 +1,44 @@
+----------------------------------------------------------------- 
+-- RELATÓRIO DE COMPRAS 
+-----------------------------------------------------------------
+SELECT 
+	m.MARCA AS "Marca",
+	pg.GRUPO AS "Categoria",
+	m.CODEMP AS "Código",
+	m.MERCADORIA AS "Produto",
+	m.CUSTO AS "Custo Unitário",
+	SUM(vp.QUANTIDADE) AS "Produtos Vendidos",
+	u.UNIDADE AS "Unidade",
+	COUNT(vp.CODEMP) AS "Quantidade de Vendas",
+	me.SALDO_ESTOQUE AS "Estoque",
+	m.MINIMO AS "Mínimo",
+	ROUND( ((SUM(vp.QUANTIDADE) * 1.2) - me.SALDO_ESTOQUE) , 0 ) AS "Recomendação",
+	ROUND( ((SUM(vp.QUANTIDADE) * 1.2) - me.SALDO_ESTOQUE) , 0 ) * m.CUSTO AS "Custo de Compra",
+	ROUND( ((SUM(vp.QUANTIDADE) * 1.2) - me.SALDO_ESTOQUE) , 0 ) || ' - ' || m.MERCADORIA AS "Texto"
+FROM 
+	VENDASPRODUTOS vp 
+	JOIN VENDAS v ON v."CODIGO" = vp.VENDA
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP 
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO 
+	JOIN MERCADORIAS_ESTOQUE me ON me.CODIGO_MERCADORIA = m."CODIGO"
+	JOIN UNIDADES u ON u."CODIGO" = m.UNIDADE 
+WHERE 1=1
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND vp.NATUREZA_OPERACAO = 'Venda'
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND vp.DATA >= '2024-10-01'
+	--AND m.MARCA = 'JP'
+	--AND m.MERCADORIA = '%INGER C/ FISIOLOGICO BOLSA 500M%'
+	--AND M.CODEMP = 13082
+GROUP BY 
+	m.MARCA, 
+	pg.GRUPO, 
+	m.CODEMP, 
+	m.MERCADORIA,
+	m.CUSTO,
+	u.UNIDADE,
+	me.SALDO_ESTOQUE, 
+	m.MINIMO 
+ORDER BY m.MARCA, m.MERCADORIA;

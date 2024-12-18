@@ -1,0 +1,139 @@
+-------------------------------------------------------
+----- VENDAS DETALHADAS P/ PRODUTO
+-------------------------------------------------------
+SELECT 
+	CAST(v.DATAFATURA AS DATE) AS "Data",
+	v.NOMEVEND AS "Vendedor",
+	v."CODIGO" AS "Venda",
+	n.NUMERO_NOTA AS "NFE",
+	v.NOME AS "Unidade",
+	m.CODEMP AS "Código", 
+	m.MERCADORIA AS "Produto", 
+	vp.QUANTIDADE AS "Quantidade", 
+	m.CUSTO AS "Custo Unitário",
+	vp.V_TOT / vp.QUANTIDADE  AS "Preço Unitário",
+	ROUND( (vp.V_TOT / vp.QUANTIDADE / m.CUSTO -1 ) * 100 , 0) AS "Margem",
+	((vp.V_TOT / vp.QUANTIDADE) - (m.CUSTO))*vp.QUANTIDADE AS "Lucro Total"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe.NOME = v.NOME
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-12-01'
+	--AND v.DATAFATURA < '2025-01-01'
+	AND pe.NOMEFANTASIA LIKE '%EMPRESA_X%'
+	--AND m.MERCADORIA LIKE '%ACUCAR REFINADO%'
+	--AND m.CODEMP = 13082
+	--aANDD n.NUMERO_NOTA = 7259
+GROUP BY 
+	"Data",
+	"Venda",
+	"NFE",
+	"Unidade",
+	"Vendedor",
+	"Código", 
+	"Produto", 
+	"Quantidade", 
+	"Custo Unitário",
+	"Preço Unitário",
+	"Lucro Total"
+ORDER BY "Produto";
+
+-------------------------------------------------------
+----- VENDAS RESUMIDO COM FRETE P/ NOTA
+-------------------------------------------------------
+SELECT 
+	--CAST(v.DATAFATURA AS DATE) AS "Data",
+	--v.NOMEVEND AS "Vendedor",
+	pe.MUNICIPIO AS "Cidade",
+	pe.NOME AS "Unidade",
+	v.TRANSPORTADORA_NOME AS "Transportadora",
+	n.NUMERO_NOTA AS "NFE",
+	SUM(vp.V_TOT) AS "Valor Produtos",
+	v.VALOR_FRETE AS "Frete",
+	(SUM(vp.V_TOT) + SUM(DISTINCT v.VALOR_FRETE) ) AS "Total da Nota"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe.NOME = v.NOME
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-12-03'
+	AND pe.NOMEFANTASIA LIKE '%EMPRESA_X%'
+	-- AND n.NUMERO_NOTA = 7259
+GROUP BY 
+	--"Data",
+	--"Vendedor",
+	"Unidade",
+	"Cidade",
+	"Transportadora",
+	"NFE",
+	"Frete"
+ORDER BY pe.MUNICIPIO, pe.NOME;
+
+-------------------------------------------------------
+----- TOTAL FATURAMENTO
+-------------------------------------------------------
+SELECT 
+	--pe.NOME AS "Unidade",
+	--n.NUMERO_NOTA AS "NFE",
+	ROUND(SUM((m.CUSTO * vp.QUANTIDADE)),2) AS "Custo Total",
+	ROUND(SUM(vp.V_TOT),2) AS "Faturamento",
+	ROUND(SUM(vp.V_TOT) - SUM((m.CUSTO * vp.QUANTIDADE)),2) AS "Lucro",
+    ROUND((SUM(vp.V_TOT) / SUM(m.CUSTO * vp.QUANTIDADE) - 1) * 100, 0) AS "Margem"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe.NOME = v.NOME
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-12-03'
+	AND pe.NOMEFANTASIA LIKE '%EMPRESA_X%'
+--GROUP BY pe.NOME, n.NUMERO_NOTA
+ORDER BY "Lucro" DESC;
+
+-------------------------------------------------------
+---- RELAÇÃO VENDEDOR/STANLEY
+-------------------------------------------------------
+SELECT 
+	v.NOMEVEND AS "Vendedor",
+	pe.NOME AS "Unidade",
+	ROUND(SUM(vp.V_TOT),2) AS "Faturamento",
+	ROUND(SUM((m.CUSTO * vp.QUANTIDADE)),2) AS "Custo Total",
+	ROUND(SUM(vp.V_TOT) - SUM((m.CUSTO * vp.QUANTIDADE)),2) AS "Lucro",
+	ROUND((SUM(vp.V_TOT) / SUM(m.CUSTO * vp.QUANTIDADE) - 1) * 100, 0) AS "Margem"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe.NOME = v.NOME
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-12-03'
+	AND pe.NOMEFANTASIA LIKE '%EMPRESA_X%'
+GROUP BY v.NOMEVEND, pe.NOME
+ORDER BY v.NOMEVEND;

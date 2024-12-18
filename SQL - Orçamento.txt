@@ -1,0 +1,17 @@
+-------------------------------------------------------
+-- Orçamento
+-------------------------------------------------------
+SELECT 
+	vp.CODEMP AS "Código",
+	m.MERCADORIA AS "Produto",
+	(vp.QUANTIDADE) AS "Quantidade",
+	m.CUSTO AS "Custo Unitário",
+	(vp.V_TOT)/(vp.QUANTIDADE) AS "Preço Unitário",
+	(m.CUSTO)*(vp.QUANTIDADE) AS "Custo Total",
+	vp.V_TOT AS "Preço Total"
+FROM 
+	VENDASPRODUTOS vp
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+WHERE 1=1
+	AND v."CODIGO" = 36090
+	AND vp.MODO = 'C';

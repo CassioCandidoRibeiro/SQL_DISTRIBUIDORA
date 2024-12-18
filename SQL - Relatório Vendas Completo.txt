@@ -1,0 +1,40 @@
+-------------------------------------------------------
+----- Relatório Vendas Completo 
+-------------------------------------------------------
+SELECT 
+	CAST(v.DATAFATURA AS DATE) AS "Data",
+	v."CODIGO" AS "Venda",
+	n.NUMERO_NOTA AS "NFE",
+	v.NOME AS "Cliente",
+	pe.NOMEFANTASIA AS "Razão Social",
+	v.NOMEVEND AS "Vendedor",
+	pg.GRUPO AS "Categoria",
+	m.MARCA AS "Marca",
+	vp.CODEMP AS "Código", 
+	m.MERCADORIA AS "Produto", 
+	vp.QUANTIDADE AS "Quantidade", 
+	m.CUSTO AS "Custo Unitário",
+	(vp.V_TOT)/(vp.QUANTIDADE) AS "Preço Unitário",
+	(m.CUSTO)*(vp.QUANTIDADE) AS "Custo Total",
+	vp.V_TOT AS "Preço Total",
+	v.FORMA AS "Forma de Pagamento",
+	v.DOCUMENTO_PRAZO AS "Doc Prazo"
+FROM VENDAS v 
+	JOIN VENDASPRODUTOS vp ON vp.VENDA = v."CODIGO"
+	JOIN NFE n ON n.CODIGO_VENDA = v.CODIGO_NFE 
+	JOIN PESSOASEMPRESAS pe ON pe.NOME = v.NOME
+	JOIN MERCADORIAS m ON m.CODEMP = vp.CODEMP
+	JOIN PRODGRUPOS pg ON pg."CODIGO" = m.CODIGO_GRUPO
+WHERE 1=1	
+	AND v.NATUREZA IN ('Venda')
+	AND vp.CFOP IN (5102, 5405, 6102, 6108, 6403)
+	AND v.STATUS = 'Efetivada'
+	AND v.OP_ESTORNADA = 'N'
+	AND vp.MODO = 'O'
+	AND v.DATAFATURA >= '2024-01-01'
+	AND pe.NOMEFANTASIA LIKE 'STANLEY%HAIR%'
+ORDER BY 
+	vp.V_TOT DESC,
+	v.DATAFATURA DESC,
+	v.NOME;
+--------------------------------------------------------
